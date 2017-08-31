@@ -1,0 +1,445 @@
+																QFASTMAN.txt                                                                        
+                                                                                                    
+                A tutorial-by-example for writing faster code                                       
+																 in QBasic                                                                          
+                                                                                                    
+                                                                                                    
+WHAT IS QFASTMAN?                                                                                   
+                                                                                                    
+  This is a tutorial which illustrates, by example, how to increase the                             
+  execution speed of a QBasic program.  The example, QFASTMAN, is a                                 
+  Mandelbrot Set imager.  It's not productivity software, but it is a severe                        
+  test of a program's speed.  And whether or not you are familiar with                              
+  fractals like the Mandelbrot Set, I think you'll find it's instructive and                        
+  a lot of fun.                                                                                     
+                                                                                                    
+  To get QFASTMAN to run at a worthwhile rate, we'll do a lot of creative                           
+  hi-jinks.  We will NOT rely on assembly language, but as you will see, the                        
+  biggest speed gains are not in the coding language, they're in the concept                        
+  - the creative side of programming.  Furthermore, by staying with QBasic,                         
+  things remain easier to understand or to modify for your own uses.  And now                       
+  that I'm on that subject, I hereby release all of the code in the QFASTMAN                        
+  files to the public domain.  If you can use any of this in your programs,                         
+  more power to you.  All I ask is that you give me credit where it is due.                         
+                                                                                                    
+  I wrote much of the QFASTMAN project in retrospect.  I tried hundreds of                          
+  ideas, and wrote more than 75 program versions.  Then I went back and                             
+  distilled it all into a few logical steps, while leaving out the chaff and                        
+  dead ends.  You'll note that the programs are not modular.  I don't                               
+  generally code this way, but these programs are small enough that I felt it                       
+  worked better to leave them as they are; it's easier (at least for me) to                         
+  picture the flow of the calculations and spot opportunities for                                   
+  optimization.                                                                                     
+                                                                                                    
+  I wish to thank the writers of the FRACTINT fractal program for the                               
+  valuable hints in their documentation, and Michael Abrash for his                                 
+  first-rate book The Zen of Code Optimization.  Without these sources,                             
+  QFASTMAN would not exist.                                                                         
+                                                                                                    
+                                                                                                    
+WHY QBASIC?                                                                                         
+                                                                                                    
+  First of all, because it's free to almost everyone who has MS-DOS or                              
+  Windows on their PC.  They can dig right into programming without buying                          
+  additional software.                                                                              
+                                                                                                    
+  Second, BASIC is great for creative "hacking"-style work.  I do some                              
+  programming in C but I prefer BASIC (the QBasic interpreter and the                               
+  PowerBASIC compiler) for projects like this one because the syntax is far                         
+  less error-prone.  When I'm spending less time zapping bugs I can try a lot                       
+  more ideas in one turn of the hour hand.                                                          
+                                                                                                    
+  Third, if history is any guide (and in this instance it is), then the BASIC                       
+  code in these files will still be useable ten years from now.  A number of                        
+  commercial and shareware compilers and interpreters supported in 2008 will                        
+  run this code.  I wouldn't feel comfortable making that claim about any                           
+  other language.                                                                                   
+                                                                                                    
+  Fourth, if you are going to translate code into your other favorite                               
+  language, BASIC is the easiest language to translate from.                                        
+                                                                                                    
+  And last but not least, QBasic is a cult thing, right?  8^)                                       
+                                                                                                    
+                                                                                                    
+WHAT IS THE MANDELBROT SET?                                                                         
+                                                                                                    
+  A deep discussion of the Mandelbrot Set and fractals in general is not the                        
+  purpose of this tutorial.  I expect that if you have read this far, you may                       
+  already be familiar with the subject.  But briefly, the Mandelbrot Set is                         
+  an area on a two-dimensional x-y number plane.  (You probably drew graphs                         
+  on an x-y plane in high school.)  The difference is that here we work with                        
+  the "complex" plane: we multiply the values on the y axis by the imaginary                        
+  number "i" which is defined as the square root of minus one.                                      
+                                                                                                    
+  To calculate the Mandelbrot Set, we take each x,y coordinate on this number                       
+  plane and perform a certain repetitive operation on it (the operation is                          
+  fairly simple and is in the code listings).  If the successive results of                         
+  this operation get larger and eventually expand toward infinity, the x,y                          
+  coordinate is outside of the Mandelbrot Set.  If the result of the                                
+  operation instead enters into a repetitive loop (in other words, it never                         
+  expands toward infinity) then the x,y coordinate is inside the Set.                               
+                                                                                                    
+  For us, the casual explorers, the fascination in the Mandelbrot Set lies                          
+  near the boundary between those coordinates which are inside the Set and                          
+  those which are not.  This boundary area is infinitely complex; it has been                       
+  called the most complex structure in mathematics.                                                 
+                                                                                                    
+  If we "zoom" in to look at a small part of this boundary, we find that                            
+  there is additional detail which was not visible when we looked at the                            
+  entire Set as a whole.  It's like looking at a coastline from orbit.  If we                       
+  zoom in to look from a few hundred feet up, all kinds of rocks and pools                          
+  and new details appear.  If we kneel right down on the shoreline, we see                          
+  the water curling around individual pebbles and grains of sand.  Exploring                        
+  the Mandelbrot Set is like this, with one remarkable difference: you can                          
+  zoom into the Set boundary as far as you want, yet never reach the end.                           
+  Your only limits are the magnifying ability of your program, and its speed.                       
+                                                                                                    
+  If you dig into the QFASTMAN programs the idea will become a lot clearer.                         
+  Seeing how the formula is laid out and then running the programs will                             
+  explain more than I could in many pages of text.  (Also see "For Further                          
+  Study" below.)                                                                                    
+                                                                                                    
+                                                                                                    
+QFASTM1 - THE (Q)BASIC APPROACH                                                                     
+                                                                                                    
+  QFASTM1 is simply the "mathematically correct" method for calculating and                         
+  displaying the Mandelbrot Set.  I made no attempt to code an approach which                       
+  is intentionally slow or fast; I coded in a straightforward way, as you                           
+  might if you were copying the formulas from a textbook.  QFASTM1 runs at                          
+  about the same speed as several independently-written MSet programs I have                        
+  seen.                                                                                             
+                                                                                                    
+  The program will display on your screen a strange, warty and bulbous black                        
+  shape surrounded by white.  The screen has become the complex x-y number                          
+  plane, and the black shape contains those coordinates which are inside of                         
+  the Mandelbrot Set.  You will see some dark pixels apparently sitting out                         
+  on their own, separate from the main feature.  These are in the Set, and                          
+  are connected to it.  It's just that at this low magnification the                                
+  connecting filaments are below our limit of resolution.  Later on we'll                           
+  zoom into an area and you'll see how finer details become apparent.                               
+                                                                                                    
+  If you run QFASTM1 on an older, slower machine ("slower" meaning anything                         
+  less than a Pentium) you will notice something else.  QFASTM1 is s-l-o-w.                         
+  On my Pentium 133 MHz PC, running in DOS, it takes 38 minutes 56 seconds to                       
+  finish.  (All times in this text are for running in DOS.  Windows times are                       
+  slower and less consistent.)  On a 386sx20, say, it would take enough time                        
+  to see your lawn grow.  I'm not kidding.  If we zoom in to look at details,                       
+  the calculations get heavier; even the Pentium will bog down.                                     
+                                                                                                    
+  The "correct" way of doing something isn't necessarily the best way.  In                          
+  the lower part of the screen the program prints the reminder "Ctrl+Break to                       
+  exit" in case you don't want to wait for the finish.  If you want to see                          
+  the whole thing come out on that 386sx, fire it up and leave it for a                             
+  weekend....                                                                                       
+                                                                                                    
+                                                                                                    
+QFASTM2 - SPEEDING IN THE SLOW LANE                                                                 
+                                                                                                    
+  In QFASTM1 we got an inkling of how slow this program can be without even                         
+  trying to make it slow.  Often you'll have a program which is not so                              
+  terribly slow, but still needs a 50%-100% speed-up.  Let's see if we can                          
+  get this kind of speed gain with just a few ordinary changes.                                     
+                                                                                                    
+  Nearly all of QFASTM1's work is done in the innermost loop, the one                               
+  beginning "FOR Iter% = 1 TO MaxIteration%".  Obviously, if we reduce                              
+  MaxIteration we'll get a proportionate speed boost, but I'd like to avoid                         
+  this.  A greater number of iterations on each coordinate yields a more                            
+  accurate - and more intricate - boundary for us to explore.  Also, I wish                         
+  to eventually use the VGA's 256 colors.  They will be tied to the number of                       
+  iterations performed on each coordinate before it "kicks out".  Large color                       
+  palettes help give the Mandelbrot images their fascinating beauty.                                
+                                                                                                    
+  So let's look elsewhere.  How about that next line in the inner FOR loop:                         
+  it tests the square root of a sum against the value 2.  We don't need to do                       
+  that slow function call or that math either.  Let's just test the sum                             
+  against the value 4; the result is the same, and faster.  Also, we                                
+  calculate Real Part squared and Imaginary Part squared at 2 different                             
+  places within the loop; let's do it just once and save the values in                              
+  temporary variables.  Our third trick involves the ^2 format used to find                         
+  the squares.  This is actually another function call; an ordinary multiply                        
+  is faster.  Finally, remove the remarks from the most heavily used code.                          
+  QBasic is an interpreter, not a compiler.  On every pass through the loop,                        
+  it spends a snippet of time checking each remark line before it moves on.                         
+  Those snippets add up.                                                                            
+                                                                                                    
+  How did we do?  With these 4 simple changes, QFASTM2 is faster than QFASTM1                       
+  by 10.4 times on the Pentium133.  I'd wager you can use that kind of quick                        
+  and easy speed gain in your programs.                                                             
+                                                                                                    
+  It's still pretty slow, however, at 3 minutes 45 seconds.  We're wrestling                        
+  with that devil floating-point math.  Even on a PC with a coprocessor,                            
+  integer math is faster than the floating-point variety; on an sx PC they                          
+  are worlds apart.                                                                                 
+                                                                                                    
+  What about the rest of the program?  Isn't there code all over that could                         
+  be streamlined?  Yes, but as Michael Abrash would say, "Know where your                           
+  clock cycles are going".  Remove the inner FOR loop in QFASTM2 and you'll                         
+  find that the rest of the program uses only 1% of the total time on the                           
+  Pentium133.  We could streamline the rest of the code to the point where it                       
+  runs in no time at all, yet QFASTM2 would speed up by only 1%.                                    
+                                                                                                    
+  You see, we calculate MSet values for 64,000 pixels.  Placing a counter                           
+  inside the inner FOR loop reveals that we make a grand total of 3,526,188                         
+  iterations, each iteration involving several floating-point calculations.                         
+  The overhead in setting up 64,000 pixels is tiny in comparison.                                   
+                                                                                                    
+  If you want the cpu to work faster, reduce its work load.  But it sure                            
+  would be nice if we could use that speedy integer math....                                        
+                                                                                                    
+                                                                                                    
+QFASTM3 - TURNING APPLES INTO ORANGES                                                               
+                                                                                                    
+  How about this: you want to multiply two decimal numbers; let's say 1.22                          
+  and 0.15.  That's a floating point calculation: 1.22 x 0.15 = 0.183.                              
+                                                                                                    
+  Now do it again, but first multiply each number by 100.  Now we are                               
+  multiplying 122 and 15.  That's an integer math calculation: 122 x 15 =                           
+  1830.  Since we multiplied each factor by 100, we need to divide 1830 by                          
+  (100*100), and we get our answer of 0.183.  The first and last steps are                          
+  floating-point calculations, but the intermediate steps are integer math.                         
+                                                                                                    
+  If we are dealing with an operation where the intermediate numbers are                            
+  manipulated many times (as we are with QFASTM2's inner loop) the time saved                       
+  with integer math will be more than the time lost doing the conversions at                        
+  either end.  The conversions become a part of the relatively small                                
+  overhead, and the loop which is eating up 99% of the clock gets converted                         
+  from floating-point-intensive to integer-intensive.                                               
+                                                                                                    
+  QFASTM3 is about as simple a conversion to this idea as I had time to come                        
+  up with.  It uses long integers to avoid overflows.  The long int's also                          
+  make it easier to deal with rounding errors, which are the big bugaboo of                         
+  this approach (more on that later).  The larger the factor by which we                            
+  scale up things, the less bothersome are the rounding errors, but the                             
+  slower the program.  And if we get too large with our scaling factor we'll                        
+  run into overflows again.  Here we use a scale factor of 1000 and it works                        
+  pretty well.                                                                                      
+                                                                                                    
+  How well?  On the Pentium133 our new version runs in 1 minute flat.  It's                         
+  faster than QFASTM2 by 3.7 times.  You'll notice that the image is not                            
+  quite the same, due to rounding.  But the floating-point versions have                            
+  rounding errors also; QFASTM3's depiction of the x-axis as an unbroken line                       
+  is actually more accurate.                                                                        
+                                                                                                    
+  The lesson: if you don't like the rules, change them....                                          
+                                                                                                    
+                                                                                                    
+QFASTM4 - GO JUMP IN THE LAKE                                                                       
+                                                                                                    
+  So far we have sped up the program by 38.9 times on the Pentium133.  It                           
+  appears that we will end up with a fast program if our creativity holds out                       
+  (and it usually does if you give it a positive attitude and occasional                            
+  rest).  So let's enhance QFASTMAN's appearance a bit, with 255 colors                             
+  courtesy of the VGA mode 13.  (Mode 13 has 256 colors, but we'll save one                         
+  for later use in QFASTM5.)                                                                        
+                                                                                                    
+  The colorful beauty of Mandelbrot images comes mainly from tying the                              
+  palette colors to the value of the iteration at which the MSet formula                            
+  "kicks out".  Doing it is pretty simple: we take the iteration value and                          
+  write it into the coordinate's location in video memory.  The default                             
+  palette is not particularly attractive, but QFASTM4 will give you the idea,                       
+  and we'll see in QFASTM6 that changing the palette is also simple to do.                          
+                                                                                                    
+  Okay, back to the hot-rodding.  Our images show the complex x-y plane with                        
+  the Mandelbrot Set as a central dark area.  Literature about the MSet often                       
+  refers to the central area as the Mandelbrot "lake".  Coordinates in the                          
+  lake are the ones which never cause the repeated iteration to grow to                             
+  infinity, no matter how many times we iterate.  In other words, whenever we                       
+  test a coordinate which is in the lake, the result of the iterated formula                        
+  settles into an infinite loop.  These coordinates are also the slowest ones                       
+  to calculate, since each one guarantees that the inner loop will go through                       
+  the maximum number of iterations.  Wouldn't it be nice if we could                                
+  short-circuit these most time-consuming coordinates of all?                                       
+                                                                                                    
+  It turns out we can.  The fact that the iterated formula gets into an                             
+  infinite loop is the clue: it cannot be an infinite loop unless the results                       
+  repeat.  As soon as there is a repeat, all succeeding iterations must                             
+  repeat.  Luckily for us, the repetition begins soon enough that we can                            
+  usually detect it long before we get to even the 100th iteration.                                 
+                                                                                                    
+  Of the approaches I tried, the most effective seems to be to test the value                       
+  of (RealPartSquared + ImaginaryPartSquared).  When this value begins to                           
+  periodically repeat, we have a coordinate that is in the lake; we set Iter%                       
+  to the maximum value and exit the loop.                                                           
+                                                                                                    
+  Since there is some rounding in our method due to our quest for speed, it's                       
+  slightly possible for a coordinate outside of the M-Set to falsely test                           
+  positive for periodicity.  Furthermore, it's counter-productive to test                           
+  every coordinate for periodicity, since the majority are not in the MSet                          
+  lake.  Borrowing a suggestion from FRACTINT, our method is more foolproof                         
+  and much more efficient if we test for periodicity only in those cases                            
+  where the previous coordinate proved to be in the lake.                                           
+                                                                                                    
+  The result: testing of coordinates inside the MSet lake goes much faster.                         
+  QFASTM4 runs in 24.2 seconds under DOS on the Pentium133 - a 2.5 times                            
+  speed boost.  In your quest for speed, look for clues in the data....                             
+                                                                                                    
+                                                                                                    
+QFASTM5 - PAINTING THE PIXELS                                                                       
+                                                                                                    
+  A program can do a lot more useful calculating in a given time if it avoids                       
+  some of the drudge work.  Take a look at QFASTM5.                                                 
+                                                                                                    
+  Here we borrow another idea from FRACTINT.  Almost any image from the MSet                        
+  will contain many areas of many pixels all the same color.  QFASTM5                               
+  calculates a pixel, skips a few, calculates a pixel, skips a few, and so                          
+  on.  Then it checks each of these small "boxes" to see if it has pixels of                        
+  the same color at all four corners.  If it does, we assume the area inside                        
+  this box is also the same color and we simply "paint" it in without                               
+  bothering to calculate the blank pixels.  When we've gone over the whole                          
+  screen, we go back and calculate those pixels which are not yet colored.                          
+                                                                                                    
+  QFASTM5 uses boxes 4 pixels on a side, which seems to be a good compromise                        
+  between speed and accuracy.  And it is fairly accurate; the image is pretty                       
+  much as it was before.  Speed is good, too: the execution time on the                             
+  Pentium133 is now down to 11.3 seconds, a 2.1 times speed gain.                                   
+                                                                                                    
+  The fastest way to calculate something is to not calculate it at all....                          
+                                                                                                    
+                                                                                                    
+QFASTM6 - TIME OUT FOR SOME COMPUTER ART                                                            
+                                                                                                    
+  Here ends the main part of this tutorial, but I want to leave you with a                          
+  little taste for more.  QFASTM6 displays a low-power (8X magnification)                           
+  zoom into the MSet, using a modified palette.  This is just an inkling of                         
+  the explorations that are possible.                                                               
+                                                                                                    
+  Something you might wish to code: 320 x 240 256-color Mode X.  You'd get                          
+  square pixels and 20% better resolution for more attractive images.  And                          
+  beyond that, many home PC's now have SVGA....                                                     
+                                                                                                    
+                                                                                                    
+JUST HOW FAST CAN THIS SUCKER GO?                                                                   
+                                                                                                    
+  Actually, a good deal faster, at least in some cases.  From QFASTM1 to                            
+  QFASTM5 we got a speed gain of 207 times (!).  But now that you've learned                        
+  the concept behind creative optimizing, I'll give you a suggestion.                               
+                                                                                                    
+  You may have noticed that the Mandelbrot Set image is symmetrical around                          
+  the x-axis.  That is, the iteration value for the coordinate (x,y) is                             
+  identical to the value for the coordinate (x,-y).  Once you calculate one,                        
+  you've got the other; color one coordinate and you can jump over and color                        
+  the other one.  That's right: in every QFASTMAN from QFASTM1 through                              
+  QFASTM5 we did twice as much figuring as we needed to!  If you code this                          
+  efficiently, any time the x-axis is inside the screen frame you'll get a                          
+  speed boost.  If the x-axis is centered, as it is with the full MSet image,                       
+  you'll draw your image nearly twice as fast.                                                      
+                                                                                                    
+  QFASTM5 is not fully streamlined in other ways, either.  We have sped up                          
+  the program so much that the overhead in setting up the 64,000 pixels is                          
+  now a significant fraction of the total run time.  You could find a modest                        
+  gain there.  And maybe there is a still-undiscovered way of looking at the                        
+  coordinate calculations that will get rid of much of the math...?                                 
+                                                                                                    
+                                                                                                    
+MAKING ZOOMS ZOOM                                                                                   
+                                                                                                    
+  QFASTM6 reveals the shortcoming with the integer approach in QBasic: we run                       
+  into overflow problems almost immediately.  How can we get around this?                           
+    (1) Go back to floating point.  The program will slow down a lot, but                           
+        we'll keep most of the gains we've made.                                                    
+    (2) Use fixed point arithmetic, in which one integer represents the                             
+        integer part of a value (i.e. the 2 in 2.345) and a second integer                          
+        represents the decimal part (i.e. the 345 in 2.345).  I won't go into                       
+        this any further here; I'll leave it to you to work out an approach,                        
+        or consult FRACTINT, etc.                                                                   
+    (3) Figure out a different approach using integer math.  Any number, no                         
+        matter how many significant digits, can be represented by a series of                       
+        smaller numbers.  For example, 123456 can be represented as                                 
+        (123 x 1000) + 456.  I think there is a lot of possibility in such                          
+        an extended-precision math approach; I frankly have not had time to                         
+        work on it.  Remember: it will have to be efficient or the program                          
+        will take ages to run.                                                                      
+                                                                                                    
+  Note that going back to floating-point is only a band-aid solution.  It                           
+  will only let you zoom in so far, then you'll run out of significant                              
+  digits.  FRACTINT, using a compiled assembly-language extended-precision                          
+  library, can zoom into the MSet to magnifications equal to 1 followed by                          
+  1300 zeroes.(!)  If you are interested in writing a comprehensive (Q)BASIC                        
+  MSet program, you would do well to download the free FRACTINT program and                         
+  its documentation.  Running the program will give you lots of ideas, not to                       
+  mention a severe case of insomnia from deep-zoom exploring.  And, as I said                       
+  before, you are free to use any of my QFASTMAN code in your program - just                        
+  give me due credit.                                                                               
+                                                                                                    
+                                                                                                    
+WHEN DO WE GO TO ASSEMBLY? or WHO SAID THAT NASTY WORD?                                             
+                                                                                                    
+  Simply put: never.  That is not the purpose of this tutorial.  Creative                           
+  optimizing will almost always pay bigger dividends than simply translating                        
+  a program into assembly language.  Re-coding a program in well-written                            
+  assembly typically gains 2-3 times in speed.  This utterly pales in                               
+  comparison to the gains possible from creative thinking.  Remember, we have                       
+  sped up QFASTMAN 207 times over, while staying with QBasic, and a few                             
+  paragraphs ago I gave you a hint for nearly doubling the speed again.                             
+                                                                                                    
+  Besides, when you optimize a program it tends to get larger and more                              
+  abstract.  An optimized assembly listing is one of the most obscure                               
+  documents you'll ever see; optimized high-level code is bad enough.  When                         
+  you have absolutely run out of ideas for improving your QBasic code and you                       
+  still need more performance, only then is it time to resort to low-level                          
+  code.  And there are always BASIC compilers; the QFASTMAN files need very                         
+  few changes to compile in PowerBASIC, for example.  As a very rough general                       
+  rule, figure on a 4 times speed gain for compiling, over interpreting.                            
+                                                                                                    
+                                                                                                    
+A PENNY (WELL, NOT QUITE A PENNY) FOR YOUR THOUGHTS                                                 
+                                                                                                    
+  You may think of some speed tricks that I missed, since I could only put so                       
+  much time into this project.  If you come up with something, I'd appreciate                       
+  hearing from you.  Actually, any questions, corrections, or suggestions are                       
+  welcome.  I hope to some day get back to this project and work out a                              
+  high-speed zoom!                                                                                  
+                                                                                                    
+    Jim Phillips                                                                                    
+    6795 Lipscy Road                jphillip@northernnet.com                                        
+    Hill City, Minn  55748                                                                          
+                                                                                                    
+                                                                                                    
+FOR FURTHER STUDY                                                                                   
+                                                                                                    
+  This is not by any means an exhaustive list.  These are simply the sources                        
+  from which I borrowed shamelessly to create QFASTMAN.                                             
+                                                                                                    
+  * Scientific American magazine, August 1985, "Computer Recreations".  It's                        
+  hard to say how many readers felt their imaginations soaring off when	this                        
+  issue arrived in the mail with one of the magazine's most popular articles                        
+  ever.  This is the article that awoke me to the Mandelbrot Set, and even                          
+  inspired me to write a science fiction story based on a take-off of the                           
+  concept (never published but not half bad, really).  The article contains                         
+  some nice images, with a lucid explanation and introduction to the                                
+  Mandelbrot Set.                                                                                   
+                                                                                                    
+  * FRACTINT.  A fractal explorer program superb, with more bells and                               
+  whistles than Santa's workshop.  Clearly a labor of love by a whole gang of                       
+  coding ninjas, it was the inspiration for QFASTMAN and is the standard                            
+  against which I've tested QFASTMAN's speed.  It's compiled, written in C                          
+  with quite a bit of optimized assembly language in the heavily used                               
+  routines, and is claimed to be the fastest MSet program around; it's                              
+  certainly the fastest I've seen.  FRACTINT has been available for free on                         
+  the Internet whenever I have checked; source code and documentation are                           
+  included.  Just search on FRACTINT and download.                                                  
+                                                                                                    
+  * The Zen of Code Optimization, by Michael Abrash.  The code is written in                        
+  C and assembly, but it's the mind-set or attitude that's important (you                           
+  know that now!), and Abrash gets this across as well as anyone.  If you are                       
+  serious about optimizing your BASIC code - particularly for speed - you                           
+  should consider this book.                                                                        
+                                                                                                    
+  * PC Magazine's BASIC Techniques, by Ethan Winer.  Out of print, which is a                       
+  pity, but available on PowerBASIC's PB/Xtra Version 2 CD.  You might also                         
+  find it on the Internet, since Ethan has very generously donated it to the                        
+  public.  Loads of good BASIC programming tips.  See Chapter 9 specifically                        
+  for many techniques on code optimization, though there are others sprinkled                       
+  throughout.  Get your hands on this text if you can.                                              
+                                                                                                    
+  * And last but not least: Remember that your creative mind is still the                           
+  most powerful optimizer to be had!                                                                
+                                                                                                    
+  Good luck in all your coding endeavors, and keep the "QBasic Qult" alive.                         
+    - Jim Phillips, June 1998                                                                       
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
